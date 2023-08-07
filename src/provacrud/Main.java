@@ -7,158 +7,179 @@ import java.util.Map;
 import javax.swing.JOptionPane;
 
 
-//desenvolva um sistema em Java com persistencia de dados em memoria, famosos CRUD
-//O sistema deve apresentar um menu ao usuario , refletindo a situacao de um estoque do e-commerce da Joana da loja JôJoias
-//No menu deve ser possivel add produto, excluir, consultar e atualizar
-//Quando for comprado mais produtos ela precisa aumentar qtnd de prod disponivel
-//Quando o usuario consultar a lista de produtos da loja, sendo mostrado valor unitario, quantidade disponivel e quantidade reservada
-//O usuario pode pedir pra reservar um prod
-//oo sistema nao controla pedidos, mas deve ser possivel cancelar uma reserva 
-//saida do estoque reserva para venda
 
-
-//nome String
-//valorUniario Double
-//qtdDisp Int
-//qtdReserv Int
-//
-//public void entradaProd(int qtdEntrada){
-//Produto p = new Produto(nome, valor, qtdDisp, QtdReserv);
-//}
 class Produto {
-        private String nomeProd;
-        private String quantidadeProd;
-        private String valorProd;
-        private String qtndReservada;
+        private String nome;
+        private double valorUnitario;
+        private int quantidadeDisponivel;
+        private int quantidadeReservada;
 
 
-        public Produto(String nomeProd, String quantidadeProd, String valorProd) {
-            this.nomeProd = nomeProd;
-            this.quantidadeProd = quantidadeProd;
-            this.valorProd = valorProd;
+        public Produto(String nome, double valorUnitario, int quantidadeDisponivel) {
+            this.nome = nome;
+            this.valorUnitario = valorUnitario;
+            this.quantidadeDisponivel = quantidadeDisponivel;
+            this.quantidadeReservada = 0;
         }
                 
-        public String getNomeProd(){
-            return nomeProd;
+        public String getNome() {
+            return nome;
         }
-        public String getQuantidadeProd(){
-            return quantidadeProd;
+
+        public double getValorUnitario() {
+            return valorUnitario;
         }
-        public String getValorProd(){
-            return valorProd;
+
+        public int getQuantidadeDisponivel() {
+            return quantidadeDisponivel;
         }
-        public String getQtndReservada(){
-            return qtndReservada;
+
+        public int getQuantidadeReservada() {
+            return quantidadeReservada;
+        }
+
+        public void reservar(int quantidade) {
+            if (quantidade <= quantidadeDisponivel) {//verifica se a quantidade que deseja reservar e menor ou igual a quantidade disponivel
+                quantidadeDisponivel -= quantidade;
+                quantidadeReservada += quantidade;
+            } else {
+                JOptionPane.showMessageDialog(null, "Quantidade indisponível para reserva.");
+            }
+        }
+
+        public void cancelarReserva(int quantidade) {
+            if (quantidade <= quantidadeReservada) {//verifica se a quantidade que deseja tirar do reservado é menor que a quantidade pedida
+                quantidadeDisponivel += quantidade;
+                quantidadeReservada -= quantidade;
+            } else {
+                JOptionPane.showMessageDialog(null, "Quantidade a cancelar é maior do que a quantidade reservada.");
+            }
+        }
+
+        public void registrarSaida(int quantidade) {
+            if (quantidade <= quantidadeReservada) {//verifica se a qtnd que deseja tirar e maior ou igual a quantidade que esta reservada
+                quantidadeReservada -= quantidade;
+                if (quantidadeReservada == 0) {
+                    quantidadeDisponivel -= quantidade;
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Quantidade de saída é maior do que a quantidade reservada.");
+            }
         }
 }
 
     
 public class Main {
-    private final Map<String, Produto> produtos;
+    private Map<String, Produto> estoque;
 
     public Main() {
-        produtos = new HashMap<>();
+        estoque = new HashMap<>();
     }
     
     public void addProduto() {
-        String nomeProd = JOptionPane.showInputDialog("Digite o nome do produto:");
-        String quantidadeProd = JOptionPane.showInputDialog("Digite a quantidade que deseja adicionar:");
-        String valorProd = JOptionPane.showInputDialog("Digite o valor do produto:");
+        String nome = JOptionPane.showInputDialog("Digite o nome do produto:");
+        int quantidadeDisponivel = Integer.parseInt(JOptionPane.showInputDialog("Digite a quantidade disponível do produto:"));
+        double valorUnitario = Double.parseDouble(JOptionPane.showInputDialog("Digite o valor unitário do produto:"));
        
-        Produto produto = new Produto(nomeProd, quantidadeProd, valorProd);
-        produtos.put(nomeProd.substring(0, nomeProd.length()), produto);
+        Produto produto = new Produto(nome, valorUnitario, quantidadeDisponivel);
+        estoque.put(nome, produto);
+        
+        
         JOptionPane.showMessageDialog(null, "Produto adicionado com sucesso!");
     }
     
     public void consultarProd(){
-        if (produtos.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Nenhum produto encontrado.");
-        } else {
-            StringBuilder mensagem = new StringBuilder("Produtos:\n");
-            for (Produto produto : produtos.values()) {
-                mensagem.append("Nome Produto: ").append(produto.getNomeProd()).append("\n");
-                mensagem.append("Quantidade Produto: ").append(produto.getQuantidadeProd()).append("\n");
-                mensagem.append("Valor Produto: R$").append(produto.getValorProd()).append(",00\n");
+        StringBuilder mensagem = new StringBuilder("Lista de Produtos:\n");
+            for (Produto produto : estoque.values()) {
+                mensagem.append("Nome: ").append(produto.getNome()).append("\n");
+                mensagem.append("Valor Unitário: ").append(produto.getValorUnitario()).append("\n");
+                mensagem.append("Quantidade Disponível: ").append(produto.getQuantidadeDisponivel()).append("\n");
+                mensagem.append("Quantidade Reservada: ").append(produto.getQuantidadeReservada()).append("\n");
                 mensagem.append("--------------------\n");
             }
+
             JOptionPane.showMessageDialog(null, mensagem.toString());
         }
-    }
-    public void atualizarProd() {
-        String nmProd = JOptionPane.showInputDialog("Digite o nome do produto que deseja atualizar:");
 
-        Produto produto = produtos.get(nmProd);
-        produtos.remove(nmProd, produto);
-        if (produto != null) {
-            String novoNomeProd = JOptionPane.showInputDialog("Digite o novo nome do produto:");
-            String novaQuantidadeProd = JOptionPane.showInputDialog("Digite a nova quantidade disponivel do produto:");
-            String novoValorProd = JOptionPane.showInputDialog("Digite o novo valor do produto:");
-            
-            produto = new Produto(novoNomeProd, novaQuantidadeProd, novoValorProd);
-            
-            produtos.put(nmProd, produto);
-            JOptionPane.showMessageDialog(null, "Produto atualizado com sucesso!");
-        } else {
-            JOptionPane.showMessageDialog(null, "Produto não encontrado.");
-        }
-    }
     public void deletarProd() {
         String nmProd = JOptionPane.showInputDialog("Digite o nome do produto que deseja excluir:");
 
-        Produto produto = produtos.remove(nmProd);
+        Produto produto = estoque.remove(nmProd);
         if (produto != null) {
             JOptionPane.showMessageDialog(null, "Produto excluído com sucesso!");
         } else {
             JOptionPane.showMessageDialog(null, "produto não encontrado.");
         }
     }
+    
     public void reservarProduto(){
-        String reservaProduto = JOptionPane.showInputDialog("Qual produto voce deseja reservar: ");
-         
-        Produto produto = produtos.get(reservaProduto);
-        if (produto != null) {
-            String produtosReservados = JOptionPane.showInputDialog("Quantas unidades voce deseja reservar:");
-            
+        String nome = JOptionPane.showInputDialog("Digite o nome do produto para reserva:");
+        Produto produto = estoque.get(nome);
 
-            
-            
-            JOptionPane.showMessageDialog(null, "Produto reservado com sucesso!");
+        if (produto != null) {
+            int quantidade = Integer.parseInt(JOptionPane.showInputDialog("Digite a quantidade para reserva:"));
+            produto.reservar(quantidade);
+        } else {
+            JOptionPane.showMessageDialog(null, "Produto não encontrado.");
+        }
+    }
+    
+    public void cancelarReserva() {
+        String nome = JOptionPane.showInputDialog("Digite o nome do produto para cancelar a reserva:");
+        Produto produto = estoque.get(nome);
+
+        if (produto != null) {
+            int quantidade = Integer.parseInt(JOptionPane.showInputDialog("Digite a quantidade para cancelar a reserva:"));
+            produto.cancelarReserva(quantidade);
+        } else {
+            JOptionPane.showMessageDialog(null, "Produto não encontrado.");
+        }
+    }
+
+    public void registrarSaida() {
+        String nome = JOptionPane.showInputDialog("Digite o nome do produto para registrar a saída:");
+        Produto produto = estoque.get(nome);
+
+        if (produto != null) {
+            int quantidade = Integer.parseInt(JOptionPane.showInputDialog("Digite a quantidade para registrar a saída:"));
+            produto.registrarSaida(quantidade);
         } else {
             JOptionPane.showMessageDialog(null, "Produto não encontrado.");
         }
     }
     
     public static void main(String[] args) {
-        Main crudProdutos = new Main();
+        Main sistema = new Main();
         int escolha;
 
         do {
-            String[] opcoes = { "Adicionar produtos", "Consultar produtos", "Atualizar produtos", "Excluir produtos", "Reservar Produto", "Sair" };
+            String[] opcoes = { "Adicionar Produto", "Listar Produtos", "Reservar Produto",
+                    "Cancelar Reserva", "Registrar Saída", "Sair" };
+
             escolha = JOptionPane.showOptionDialog(null, "Escolha uma opção:", "Menu", JOptionPane.DEFAULT_OPTION,
                     JOptionPane.PLAIN_MESSAGE, null, opcoes, opcoes[0]);
 
             switch (escolha) {
-                case 0: 
-                    crudProdutos.addProduto();
-                break;
-                case 1: 
-                    crudProdutos.consultarProd();
-                break;
-                case 2: 
-                    crudProdutos.atualizarProd();
-                break;
-                case 3: 
-                    crudProdutos.deletarProd();
-                break;
-                case 4: 
-                    crudProdutos.reservarProduto();
-                break;
-                case 5: 
+                case 0:
+                    sistema.addProduto();
+                    break;
+                case 1:
+                    sistema.consultarProd();
+                    break;
+                case 2:
+                    sistema.reservarProduto();
+                    break;
+                case 3:
+                    sistema.cancelarReserva();
+                    break;
+                case 4:
+                    sistema.registrarSaida();
+                    break;
+                case 5:
                     JOptionPane.showMessageDialog(null, "Saindo...");
-                break;
-                default: 
+                    break;
+                default:
                     JOptionPane.showMessageDialog(null, "Escolha inválida.");
-                break;
             }
         } while (escolha != 5);
     }
